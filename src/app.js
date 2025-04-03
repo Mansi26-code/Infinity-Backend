@@ -18,11 +18,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: (origin, callback) => {
+     origin: (origin, callback) => {
+      // Check if the origin matches the pattern *.vercel.app
       if (
-        !origin ||
-        origin.match(/^https?:\/\/(.*\.)?vercel\.app$/) ||
-        origin === "https://infinity-frontend-three.vercel.app/"
+        origin &&
+        (origin.match(/^https?:\/\/(.*\.)?vercel\.app$/) ||
+          origin === "http://localhost:5173")
       ) {
         callback(null, true);
       } else {
@@ -31,7 +32,7 @@ app.use(
     },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
-  })
+  }),
 );
 
 app.use("/api/v1/user", userRouter);
@@ -43,12 +44,14 @@ app.get("/", (req, res) => {
   res.send("Server is working fine");
 });
 
-app.get("/api/v1/redis-status", async (req, res) => {
+app.get('/api/v1/redis-status', async (req, res) => {
   try {
-    const pingResponse = await redisClient.ping();
-    res.json({ success: true, message: "Redis is connected", response: pingResponse });
+      // Attempt a simple command to check if Redis is connected
+      await redisClient.ping();
+      res.json({ success: true, message: 'Redis is connected' });
   } catch (error) {
-    console.error("Redis error:", error);
-    res.status(500).json({ success: false, message: "Redis is not connected" });
-  }
+      console.error('Redis error:', error);
+      res.json({ success: false, message: 'Redis is not connected' });
+  }
 });
+
