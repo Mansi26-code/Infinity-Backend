@@ -1,54 +1,46 @@
 import express from "express";
-import userRouter from "./Routers/userRouter.js";
-import postRouter from "./Routers/postRouter.js";
-import followRouter from "./Routers/followRouter.js";
-import notificationRouter from "./Routers/notificationRouter.js";
-import cookieParser from "cookie-parser";
-import { config } from "dotenv";
 import cors from "cors";
-import redisClient from "./utils/redisClient.js";
+import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
 
-export const app = express();
+dotenv.config(); // Load environment variables
 
-config({
-  path: "./.env",
-});
+const app = express();
+
+// Middleware
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// CORS Configuration
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (
-        !origin ||
-        origin.match(/^https?:\/\/(.*\.)?vercel\.app$/) ||
-        origin === "https://infinity-frontend-three.vercel.app/"
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: ["https://infinity-frontend-three.vercel.app", "http://infinity-frontend-three.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true,
+    credentials: true, // Allow cookies to be sent
   })
 );
 
-app.use("/api/v1/user", userRouter);
-app.use("/api/v1/post", postRouter);
-app.use("/api/v1/follow", followRouter);
-app.use("/api/v1/notification", notificationRouter);
+// Connect to MongoDB
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.error("MongoDB Connection Error:", err));
 
+// Test Route
 app.get("/", (req, res) => {
-  res.send("Server is working fine");
+  res.send("Infinity Backend is running!");
 });
 
-app.get("/api/v1/redis-status", async (req, res) => {
-  try {
-    const pingResponse = await redisClient.ping();
-    res.json({ success: true, message: "Redis is connected", response: pingResponse });
-  } catch (error) {
-    console.error("Redis error:", error);
-    res.status(500).json({ success: false, message: "Redis is not connected" });
-  }
-});
+// Import Routes
+import userRoutes from "./routes/userRoutes.js";
+app.use("/api/v1/user", userRoutes);
+
+// Start Server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+export default app;
