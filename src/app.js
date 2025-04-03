@@ -23,7 +23,7 @@ app.use(
       if (
         origin &&
         (origin.match(/^https?:\/\/(.*\.)?vercel\.app$/) ||
-          origin === "http://localhost:5173")
+          origin === "https://infinitybackend-jet.vercel.app/")
       ) {
         callback(null, true);
       } else {
