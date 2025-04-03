@@ -22,7 +22,7 @@ app.use(
       if (
         !origin ||
         origin.match(/^https?:\/\/(.*\.)?vercel\.app$/) ||
-        origin === "https://infinity-frontend-three.vercel.app/"
+        origin === " https://infinitybackend-jet.vercel.app/"
       ) {
         callback(null, true);
       } else {
